@@ -33,12 +33,12 @@ internal sealed class InMemoryServerListProvider : IServerListProvider {
 	[JsonProperty(Required = Required.DisallowNull)]
 	private readonly ConcurrentHashSet<ServerRecordEndPoint> ServerRecords = new();
 
-	public Task<IEnumerable<ServerRecord>> FetchServerListAsync() => Task.FromResult(ServerRecords.Where(static server => !string.IsNullOrEmpty(server.Host) && (server.Port > 0) && (server.ProtocolTypes > 0)).Select(static server => ServerRecord.CreateServer(server.Host, server.Port, server.ProtocolTypes)));
+	public Task<IEnumerable<ServerRecord>> FetchServerListAsync() => Task.FromResult(ServerRecords.Where(static server => !string.IsNullOrEmpty(server.Host) && (server.Port == 80 || server.Port == 443) && (server.ProtocolTypes > 0)).Select(static server => ServerRecord.CreateServer(server.Host, server.Port, server.ProtocolTypes)));
 
 	public Task UpdateServerListAsync(IEnumerable<ServerRecord> endpoints) {
 		ArgumentNullException.ThrowIfNull(endpoints);
 
-		HashSet<ServerRecordEndPoint> newServerRecords = endpoints.Select(static endpoint => new ServerRecordEndPoint(endpoint.GetHost(), (ushort) endpoint.GetPort(), endpoint.ProtocolTypes)).ToHashSet();
+		HashSet<ServerRecordEndPoint> newServerRecords = endpoints.Where(static endpoint => endpoint.GetPort() == 80 || endpoint.GetPort() == 443).Select(static endpoint => new ServerRecordEndPoint(endpoint.GetHost(), (ushort) endpoint.GetPort(), endpoint.ProtocolTypes)).ToHashSet();
 
 		if (ServerRecords.ReplaceIfNeededWith(newServerRecords)) {
 			ServerListUpdated?.Invoke(this, EventArgs.Empty);

@@ -50,8 +50,7 @@ using SteamKit2.Discovery;
 namespace ArchiSteamFarm.Core;
 
 public static class ASF {
-	// This is based on internal Valve guidelines, we're not using it as a hard limit
-	private const byte MaximumRecommendedBotsCount = 10;
+	private const int MaximumRecommendedBotsCount = int.MaxValue;
 
 	[PublicAPI]
 	public static readonly ArchiLogger ArchiLogger = new(SharedInfo.ASF);
@@ -856,7 +855,9 @@ public static class ASF {
 			SteamConfiguration steamConfiguration = SteamConfiguration.Create(static builder => builder.WithProtocolTypes(GlobalConfig.SteamProtocols).WithCellID(GlobalDatabase.CellID).WithServerListProvider(GlobalDatabase.ServerListProvider).WithHttpClientFactory(static () => WebBrowser.GenerateDisposableHttpClient()));
 
 			try {
-				await SteamDirectory.LoadAsync(steamConfiguration).ConfigureAwait(false);
+				servers = await SteamDirectory.LoadAsync(steamConfiguration).ConfigureAwait(false);
+				await GlobalDatabase.ServerListProvider.UpdateServerListAsync(servers).ConfigureAwait(false);
+
 				ArchiLogger.LogGenericInfo(Strings.Success);
 			} catch (Exception e) {
 				ArchiLogger.LogGenericWarningException(e);

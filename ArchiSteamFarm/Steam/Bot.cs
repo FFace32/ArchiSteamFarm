@@ -1790,6 +1790,8 @@ public sealed class Bot : IAsyncDisposable, IDisposable {
 
 		ArchiLogger.LogGenericInfo(Strings.BotConnecting);
 		InitConnectionFailureTimer();
+
+		SteamClient.Servers.ReplaceList(await ASF.GlobalDatabase!.ServerListProvider.FetchServerListAsync().ConfigureAwait(false));
 		SteamClient.Connect();
 	}
 
